@@ -5,7 +5,7 @@ export type BookingStatus = 'nuova' | 'confermata' | 'rifiutata' | 'annullata'
 export const STATUS_LABEL: Record<BookingStatus, string> = { nuova: 'Da confermare', confermata: 'Confermata', rifiutata: 'Rifiutata', annullata: 'Annullata' }
 export const AREAS = ['Banco Oysteroom', 'Sala Radetzky', 'Dehors Corso Garibaldi']
 
-const addDays = (iso: string, n: number) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10) }
+export const addDays = (iso: string, n: number) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10) }
 const schema = z.object({
   n: z.string().trim().min(2, 'Scrivi il nome.').max(80),
   ph: z.string().trim().max(30).refine((v) => v.replace(/\D/g, '').length >= 6, 'Scrivi un numero di telefono valido.'),
@@ -34,7 +34,7 @@ export function parseBooking(raw: unknown, today: string): Res<Booking> {
 /** Link WhatsApp con messaggio già scritto. Numeri senza prefisso = Italia. */
 export function whatsappLink(phone: string, text: string): string {
   let n = phone.replace(/[^\d+]/g, '')
-  if (n.startsWith('+')) n = n.slice(1); else if (n.startsWith('00')) n = n.slice(2); else n = '39' + n
+  if (n.startsWith('+')) n = n.slice(1); else if (n.startsWith('00')) n = n.slice(2); else if (!(n.startsWith('39') && n.length >= 11)) n = '39' + n
   return `https://wa.me/${n}?text=${encodeURIComponent(text)}`
 }
 

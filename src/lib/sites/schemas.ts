@@ -14,7 +14,9 @@ const txt = (max: number) => z.string().trim().max(max)
 /** Prezzo: numero → "6,50"; testo libero breve ("s.q.", "a peso") resta com'è; vuoto = "chiedi al banco". */
 function normPrice(p: string): string | null {
   if (!p) return ''
-  const n = Number(p.replace(',', '.'))
+  const t = p.replace(/€|\s/g, '')
+  const num = t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : /^\d{1,3}(\.\d{3})+$/.test(t) ? t.replace(/\./g, '') : t   // 1.200 = milleduecento
+  const n = num === '' ? NaN : Number(num)
   if (Number.isNaN(n)) return p.length <= 20 ? p : null
   return n < 0 || n > 100000 ? null : n.toFixed(2).replace('.', ',')
 }
@@ -91,3 +93,10 @@ export function splitHours(v: string): Hours {
 }
 export const joinHours = (h: Hours) => (h.open ? joinRanges(h.ranges) : 'chiuso')
 export const SITE_URL: Record<'oyster' | 'radetzky', string> = { oyster: 'https://danilorusciano.it/oyster/', radetzky: 'https://danilorusciano.it/Radetzky/' }
+
+/** Posizione per un piatto che entra in una sezione: subito dopo l’ultimo della sezione (l’ordine delle sezioni non cambia); sezione nuova in fondo. */
+export function sortForSection(rows: { section: string; sort: number }[], section: string): number {
+  const inSec = rows.filter((r) => r.section === section).map((r) => r.sort)
+  if (inSec.length) return Math.max(...inSec) + 1
+  return (rows.length ? Math.max(...rows.map((r) => r.sort)) : 0) + 10
+}
