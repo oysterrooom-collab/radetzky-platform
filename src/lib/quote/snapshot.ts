@@ -55,7 +55,7 @@ export function buildSnapshot(i: In): QuoteSnapshot {
     conditions: i.settings.preventivo.conditions,
   }
 }
-/** Numero e versione della prossima emissione per una pratica. */
+/** Numero e versione della prossima emissione per un evento. */
 export function nextNumberAndVersion(previous: { number: string; version: number }[]): { reuseNumber: string | null; version: number } {
   if (!previous.length) return { reuseNumber: null, version: 1 }
   const last = previous.reduce((a, b) => (b.version > a.version ? b : a))

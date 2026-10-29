@@ -16,15 +16,15 @@ export default async function Pratiche({ searchParams }: { searchParams: Promise
   type Row = { id: string; title: string | null; kind: keyof typeof KIND_LABEL; status: EventStatus; date: string | null; guests: number | null; style: keyof typeof STYLE_LABEL; customers: { name: string } | null }
   const rows = ((data ?? []) as unknown as Row[]).filter((r) => !sp.q || `${r.title} ${r.customers?.name}`.toLowerCase().includes(sp.q.toLowerCase()))
   return (<>
-    <PageHead title="Pratiche">{isAdminAnywhere(s.memberships) && <LinkButton href="/pratiche/nuova">Nuova pratica</LinkButton>}</PageHead>
+    <PageHead title="Eventi catering">{isAdminAnywhere(s.memberships) && <LinkButton href="/pratiche/nuova">Nuovo evento</LinkButton>}</PageHead>
     <form className="mb-5 grid gap-3 rounded border border-ink/10 bg-white p-4 md:grid-cols-5">
       <label className="grid gap-1 text-sm font-semibold">Stato<select name="stato" defaultValue={sp.stato ?? ''} className={inputCls}><option value="">Tutti</option>{Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
       <label className="grid gap-1 text-sm font-semibold">Dal<input type="date" name="da" defaultValue={sp.da} className={inputCls} /></label>
       <label className="grid gap-1 text-sm font-semibold">Al<input type="date" name="a" defaultValue={sp.a} className={inputCls} /></label>
-      <label className="grid gap-1 text-sm font-semibold">Cliente o pratica<input name="q" defaultValue={sp.q} className={inputCls} /></label>
+      <label className="grid gap-1 text-sm font-semibold">Cliente o evento<input name="q" defaultValue={sp.q} className={inputCls} /></label>
       <button className="min-h-11 self-end rounded bg-iron font-semibold text-linen">Filtra</button>
     </form>
-    {!rows.length ? <Empty>Nessuna pratica con questi filtri.</Empty> : <ul className="grid gap-2">{rows.map((r) => (
+    {!rows.length ? <Empty>Nessun evento con questi filtri.</Empty> : <ul className="grid gap-2">{rows.map((r) => (
       <li key={r.id}><Link href={`/pratiche/${r.id}`} className="flex flex-wrap items-center justify-between gap-2 rounded border border-ink/10 bg-white p-4 hover:border-iron">
         <span><span className="block text-lg font-bold">{r.title || KIND_LABEL[r.kind]}</span><span className="text-sm text-grey">{[r.customers?.name, fmtDate(r.date), r.guests ? `${r.guests} ospiti` : null, STYLE_LABEL[r.style]].filter(Boolean).join('  ·  ')}</span></span>
         <Pill tone={statusTone(r.status)}>{STATUS_LABEL[r.status]}</Pill></Link></li>))}</ul>}

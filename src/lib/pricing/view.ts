@@ -2,7 +2,7 @@ import { computeCosts, type CostLine, type PriceBook } from './costs'
 import { suggestPerPerson, totals } from './price'
 import type { CalcResult, Rules } from '@/lib/calc'
 export interface ExtraLine { id: string; label: string; costCents: number; priceCents: number }
-/** Riepilogo economico della pratica: costi per voce, prezzo suggerito, totali e margine. */
+/** Riepilogo economico dell’evento: costi per voce, prezzo suggerito, totali e margine. */
 export function costSummary(input: { res: CalcResult; prices: PriceBook; rules: Rules; guests: number; km: number; trips?: number; transportFlatCents?: number;
   perPersonCents?: number; totalNetCents?: number; extras: ExtraLine[] }) {
   const lines: CostLine[] = [...computeCosts(input.res, { km: input.km, trips: input.trips ?? input.rules.pricing.trips, transportFlatCents: input.transportFlatCents }, input.prices, input.rules),

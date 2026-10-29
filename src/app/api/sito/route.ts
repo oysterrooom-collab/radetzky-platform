@@ -1,5 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-import { env } from '@/lib/supabase/env'
+import { anonClient } from '@/lib/supabase/anon'
 import { toPublicPayload } from '@/lib/sites/payload'
 
 /** Contenuti pubblici dei siti (menù visibili, avvisi, orari) nel formato dello script Google. Letti con la chiave anon: RLS mostra solo i piatti visibili. */
@@ -11,7 +10,7 @@ const HEADERS = {
   'Netlify-CDN-Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',   // i siti si aggiornano entro un minuto
 }
 export async function GET() {
-  const s = createClient(env('NEXT_PUBLIC_SUPABASE_URL'), env('NEXT_PUBLIC_SUPABASE_ANON_KEY'), { auth: { persistSession: false } })
+  const s = anonClient()
   const [menu, info] = await Promise.all([
     s.from('site_menu').select('site, section, name, description, price, tag').eq('visible', true).order('site').order('sort').order('name'),
     s.from('site_info').select('key, value'),

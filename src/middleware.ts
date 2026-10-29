@@ -1,8 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-const PUBLIC = ['/login', '/api/sito']
+const PUBLIC = ['/login']
 export async function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith('/api/sito')) return NextResponse.next()   // contenuti pubblici dei siti: nessuna sessione
+  if (/^\/api\/(sito|prenota|evento)(\/|$)/.test(req.nextUrl.pathname)) return NextResponse.next()   // API pubbliche dei siti: nessuna sessione
   let res = NextResponse.next({ request: req })
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const isPublic = PUBLIC.some((p) => req.nextUrl.pathname.startsWith(p))

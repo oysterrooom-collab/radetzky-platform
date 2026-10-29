@@ -17,7 +17,7 @@ export function resolveRules(rules: Partial<Rules>): { rules: Rules; warnings: s
   return { rules: out, warnings }
 }
 
-/** Funzione pura: dalla pratica, dalle regole e dal catalogo ai fabbisogni. */
+/** Funzione pura: dall’evento, dalle regole e dal catalogo ai fabbisogni. */
 export function computeNeeds(ev: CalcEvent, saved: Partial<Rules>, cat: CalcCatalog): CalcResult {
   const { rules, warnings } = resolveRules(saved)
   if (!ev.guests || ev.guests < 1) return { needs: [], rentals: [], warnings: [...warnings, 'Per calcolare servono: numero di ospiti'] }

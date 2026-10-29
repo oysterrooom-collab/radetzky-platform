@@ -3,20 +3,20 @@ export type VenueSlug = 'radetzky' | 'oysteroom'
 export interface Membership { venueId: string; slug: VenueSlug; role: AppRole; seesCosts: boolean }
 export interface NavItem { href: string; label: string }
 
-const NAV: (NavItem & { roles: AppRole[] })[] = [
+const NAV: (NavItem & { roles: AppRole[]; venue?: VenueSlug })[] = [
   { href: '/', label: 'Home', roles: ['admin', 'supervisor', 'staff'] },
-  { href: '/pratiche', label: 'Pratiche', roles: ['admin', 'supervisor', 'staff'] },
+  { href: '/prenotazioni', label: 'Prenotazioni', roles: ['admin', 'supervisor', 'staff'], venue: 'oysteroom' },
+  { href: '/pratiche', label: 'Eventi', roles: ['admin', 'supervisor', 'staff'] },
   { href: '/sito', label: 'Siti', roles: ['admin', 'supervisor'] },
   { href: '/clienti', label: 'Clienti', roles: ['admin', 'supervisor'] },
   { href: '/catalogo', label: 'Catalogo', roles: ['admin', 'supervisor'] },
-  { href: '/regole', label: 'Regole', roles: ['admin', 'supervisor'] },
-  { href: '/registro', label: 'Registro', roles: ['admin', 'supervisor'] },
+  { href: '/regole', label: 'Calcolatore', roles: ['admin', 'supervisor'] },
+  { href: '/registro', label: 'Storico', roles: ['admin', 'supervisor'] },
   { href: '/impostazioni', label: 'Impostazioni', roles: ['admin'] },
 ]
 /** Voci di menu visibili: basta un ruolo adatto in almeno un locale. */
 export function buildNav(ms: Membership[]): NavItem[] {
-  const roles = new Set(ms.map((m) => m.role))
-  return NAV.filter((n) => n.roles.some((r) => roles.has(r))).map(({ href, label }) => ({ href, label }))
+  return NAV.filter((n) => ms.some((m) => n.roles.includes(m.role) && (!n.venue || m.slug === n.venue))).map(({ href, label }) => ({ href, label }))
 }
 export function resolveActiveVenue(ms: Membership[], cookie: string | undefined): VenueSlug | 'all' {
   if (ms.length === 1) return ms[0].slug

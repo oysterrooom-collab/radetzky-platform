@@ -7,6 +7,7 @@ import { costSummary } from '@/lib/pricing/view'
 import { buildSnapshot, nextNumberAndVersion } from '@/lib/quote/snapshot'
 import { renderQuotePdf } from '@/lib/pdf/render'
 import { quoteBlockers, romeToday } from '@/lib/events/rules'
+import { parseCompany } from '@/lib/catalog/settings'
 type R = { ok: true; id?: string } | { ok: false; error: string }
 
 /** Emette una nuova versione del preventivo: istantanea immutabile + PDF archiviato. */
@@ -29,9 +30,10 @@ export async function issueQuote(eventId: string, opts: { showOysteroomLogo: boo
   ])
   const nv = nextNumberAndVersion(prev ?? [])
   const today = romeToday()
+  const set = Object.fromEntries((settings ?? []).map((x) => [x.key, x.value]))
+  if (!parseCompany(set.azienda).ok) return { ok: false, error: 'Prima compila ragione sociale e partita IVA in Impostazioni › Azienda e preventivi: finiscono sul PDF.' }
   let number = nv.reuseNumber
   if (!number) { const { data, error } = await s.rpc('next_quote_number', { y: Number(today.slice(0, 4)) }); if (error || !data) return { ok: false, error: 'Numerazione non riuscita: serve essere amministratore.' }; number = data as string }
-  const set = Object.fromEntries((settings ?? []).map((x) => [x.key, x.value]))
   const eff = effectiveResult(c)
   const snapshot = buildSnapshot({
     number, version: nv.version, issuedOn: today, settings: { azienda: set.azienda, preventivo: set.preventivo },

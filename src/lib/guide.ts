@@ -1,0 +1,31 @@
+import type { AppRole, VenueSlug } from '@/lib/auth/access'
+/** Guida d'uso in parole semplici. Ogni sezione dice a chi serve; la pagina mostra solo quelle utili a chi la legge. */
+export type GuideSection = { id: string; title: string; who: AppRole[]; venue?: VenueSlug; intro: string; steps?: string[]; tips?: string[]; href?: string }
+export const GUIDE: GuideSection[] = [
+  { id: 'inizio', title: 'Come è fatta', who: ['admin', 'supervisor', 'staff'],
+    intro: 'In alto trovi le sezioni. Dal telefono sono in basso. Vedi solo quelle che servono al tuo ruolo. Se lavori in entrambi i locali, in alto a destra scegli quale vedere oppure «Tutti».',
+    tips: ['Home è il punto di partenza: richieste di tavolo da confermare, eventi dei prossimi giorni, cose rimaste ferme.', 'Ogni modifica viene registrata nello Storico con nome e ora: non c’è niente che si possa rompere per sempre.'] },
+  { id: 'prenotazioni', title: 'Prenotazioni Oysteroom', who: ['admin', 'supervisor', 'staff'], venue: 'oysteroom', href: '/prenotazioni',
+    intro: 'Le richieste di tavolo fatte dal sito arrivano qui, in «Da confermare». Non arrivano email: guarda la Home a inizio turno e ogni tanto durante il servizio.',
+    steps: ['Apri «Prenotazioni»: le richieste sono divise per giorno, con orario, nome, persone e note.', 'C’è posto? Premi «Conferma e scrivi su WhatsApp»: si apre WhatsApp con il messaggio già scritto, premi invia.', 'Non c’è posto? Premi «Siamo al completo»: WhatsApp si apre con un messaggio gentile che propone un altro orario.', 'Hai preso una prenotazione al telefono o al banco? «+ Prenotazione al telefono»: entra già confermata.', 'Il cliente disdice? Nella scheda «Confermate» premi «Annulla prenotazione».'],
+    tips: ['Se non usi WhatsApp, «Conferma» segna la prenotazione senza aprire nulla; poi chiami dal pulsante «Chiama».'] },
+  { id: 'siti', title: 'Menù, avvisi e orari dei siti', who: ['admin', 'supervisor'], href: '/sito',
+    intro: 'Da «Siti» cambi quello che i clienti leggono sui siti Oysteroom e Radetzky. Le modifiche compaiono online entro un minuto.',
+    steps: ['Scegli in alto cosa cambiare: Menù Oysteroom, Menù Radetzky, Formule catering, Avvisi e orari, Visite.', 'Per cambiare un piatto toccalo: si apre la scheda con nome, prezzo, descrizione, etichetta. Premi «Salva».', 'Un piatto è finito? Non eliminarlo: tocca l’interruttore verde «Sul sito» e diventa «Nascosto». Lo riaccendi quando torna.', 'Per un piatto nuovo: «+ Aggiungi un piatto» in alto, oppure «+ Aggiungi in …» sotto la sezione giusta.', 'Per spostare piatti o sezioni premi «Cambia ordine», usa le frecce, poi «Fine riordino».', 'In «Avvisi e orari» scrivi la striscia che compare in cima al sito (o tocca una frase pronta) e imposta gli orari: decidono anche quali orari si possono prenotare.'],
+    tips: ['«Apri il sito ↗» ti fa controllare subito il risultato.', 'In «Visite» vedi quante persone sono passate dai siti e cosa hanno fatto: chiamato, aperto la mappa, chiesto un tavolo.'] },
+  { id: 'eventi', title: 'Eventi catering, dal contatto al preventivo', who: ['admin', 'supervisor', 'staff'], href: '/pratiche',
+    intro: 'Ogni richiesta di catering è un evento. Lo crei quando qualcuno chiama o scrive, poi lo porti fino al preventivo in PDF.',
+    steps: ['«Nuovo evento»: cliente, data, orari, ospiti, tipo di servizio (in piedi, buffet, cena servita) e luogo. Puoi salvare anche a metà.', 'Scheda «Menù»: scegli una formula (es. Aperitivo Radetzky) o aggiungi i prodotti uno per uno. Le quantità sono a persona.', 'Scheda «Fabbisogni»: la piattaforma calcola camerieri, cuochi, tavoli, sedie, piatti, bicchieri. Se serve correggi a mano un numero.', 'Scheda «Costi»: vedi quanto costa e il prezzo suggerito con il margine. Fissa il prezzo a persona o il totale.', 'Scheda «Preventivi»: «Emetti il preventivo» crea il PDF con i due marchi. «Scarica il PDF», mandalo al cliente, poi premi «Segna come inviato».', 'Il cliente accetta? Cambia lo stato in «Confermato». Dopo l’evento: «Svolto», poi «Chiuso». Se rinuncia: «Perso» con il motivo.'],
+    tips: ['Lo staff vede solo gli eventi confermati, con le quantità da preparare e senza prezzi.', 'Un preventivo inviato non si modifica più: se cambia qualcosa se ne emette una nuova versione (v2, v3…).'] },
+  { id: 'clienti', title: 'Clienti', who: ['admin', 'supervisor'], href: '/clienti',
+    intro: 'La rubrica di chi ha chiesto un evento. Si riempie da sola quando crei un evento con un cliente nuovo; da qui correggi o aggiungi i dati.' },
+  { id: 'catalogo', title: 'Catalogo: prodotti, materiali, personale', who: ['admin', 'supervisor'], href: '/catalogo',
+    intro: 'Qui stanno i costi su cui si basano i preventivi: quanto costa un prodotto, il noleggio di una sedia, un’ora di cameriere.',
+    steps: ['«Prodotti»: costo per pezzo, al kg o a bottiglia.', '«Articoli»: tavoli, sedie, stoviglie con costo di noleggio e lavaggio.', '«Personale»: costo orario per ruolo.', '«Formule»: i pacchetti pronti con le quantità a persona.'],
+    tips: ['Finché un prodotto usato in un evento non ha il costo, il preventivo non si può emettere: la scheda Costi ti dice quale manca.'] },
+  { id: 'calcolatore', title: 'Calcolatore', who: ['admin', 'supervisor'], href: '/regole',
+    intro: 'Le regole con cui si calcolano i fabbisogni: quanti ospiti segue un cameriere, quante sedie per tipo di servizio, scorte di bicchieri, margine desiderato, IVA. Si cambiano con l’esperienza; i valori di partenza sono già impostati.' },
+  { id: 'utenti', title: 'Account e permessi', who: ['admin'], href: '/impostazioni',
+    intro: 'In «Impostazioni» crei gli account per lo staff e scrivi i dati dell’azienda che finiscono sul preventivo.',
+    steps: ['«Utenti e accessi» › «Nuovo utente»: nome, email, locale e ruolo. Ti viene data una password provvisoria da consegnare: al primo accesso la persona la cambia.', 'Ruoli: Amministratore fa tutto. Supervisor gestisce eventi, siti e prenotazioni; vede i costi solo se lo spunti. Staff vede prenotazioni ed eventi confermati, senza prezzi.', 'Se qualcuno lascia, «Disattiva»: non entra più ma il suo storico resta.', '«Azienda e preventivi»: ragione sociale, partita IVA, condizioni, validità e acconto.'] },
+]

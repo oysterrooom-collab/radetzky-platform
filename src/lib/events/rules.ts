@@ -33,7 +33,7 @@ const EventIn = z.object({
 }).refine((e) => !e.start_time || !e.end_time || e.start_time !== e.end_time, 'L’orario di fine deve essere diverso dall’inizio')
 export type EventData = z.output<typeof EventIn>
 
-/** Valida i dati della pratica. `today` = YYYY-MM-DD a Roma. Le bozze incomplete si salvano. */
+/** Valida i dati dell’evento. `today` = YYYY-MM-DD a Roma. Le bozze incomplete si salvano. */
 export function parseEvent(input: unknown, today: string): { ok: true; data: EventData; warnings: string[] } | { ok: false; error: string } {
   const r = EventIn.safeParse(input)
   if (!r.success) return { ok: false, error: r.error.issues[0].message }
@@ -62,7 +62,7 @@ export function mergeFormula(current: EventProduct[], formulaId: string, rows: {
   return [...current, ...rows.filter((r) => !have.has(r.product_id)).map((r) => ({ product_id: r.product_id, formula_id: formulaId, qty_per_guest: r.qty_per_guest, qty_fixed: null }))]
 }
 export function checkStatus(status: EventStatus, lostReason: string | null): { ok: true } | { ok: false; error: string } {
-  if (status === 'perso' && !lostReason) return { ok: false, error: 'Indica il motivo per cui la pratica è persa' }
+  if (status === 'perso' && !lostReason) return { ok: false, error: 'Indica il motivo per cui l’evento è perso' }
   return { ok: true }
 }
 const CustomerIn = z.object({

@@ -9,7 +9,7 @@ export interface PriceBook {
 }
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ')
 
-/** Costi interni della pratica, una riga per voce. `missing` = costo non compilato in catalogo. */
+/** Costi interni dell’evento, una riga per voce. `missing` = costo non compilato in catalogo. */
 export function computeCosts(res: CalcResult, ev: { km: number; trips: number; transportFlatCents?: number }, prices: PriceBook, rules: Rules): CostLine[] {
   const label = (k: string) => prices.labels?.[k] ?? cap(k)
   const out: CostLine[] = []

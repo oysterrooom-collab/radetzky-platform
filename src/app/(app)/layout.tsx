@@ -17,6 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <nav className="hidden gap-5 md:flex" aria-label="Principale">{nav.map((n) => <Link key={n.href} href={n.href} className="font-medium hover:text-vinaccia">{n.label}</Link>)}</nav>
           <div className="flex items-center gap-3">
             <VenueSwitcher venues={s.venues} active={s.activeVenue} />
+            <Link href="/guida" className="text-sm font-semibold underline">Guida</Link>
             <form action={logout}><button className="text-sm text-grey underline">Esci</button></form>
           </div>
         </div>

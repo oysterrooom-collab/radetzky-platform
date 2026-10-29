@@ -17,7 +17,7 @@ export default async function PraticaLayout({ children, params }: { children: Re
     ...(costs ? [{ href: '/costi', label: 'Costi e prezzo' }, { href: '/preventivi', label: 'Preventivi' }] : []),
     ...(s.memberships.some((m) => m.venueId === e.venue_id && m.role !== 'staff') ? [{ href: '/storico', label: 'Storico' }] : [])]
   return (<div>
-    <Link href="/pratiche" className="text-sm text-grey underline">Tutte le pratiche</Link>
+    <Link href="/pratiche" className="text-sm text-grey underline">Tutti gli eventi</Link>
     <header className="mt-2 mb-4 flex flex-wrap items-center gap-3"><h1 className="text-3xl font-extrabold tracking-tight [font-stretch:80%]">{e.title || KIND_LABEL[e.kind as keyof typeof KIND_LABEL]}</h1>
       <Pill tone="brand">{STATUS_LABEL[e.status as EventStatus]}</Pill>{e.customers?.name && <span className="text-grey">{e.customers.name}</span>}</header>
     {conflict && <p role="alert" className="mb-3 rounded border border-divano bg-divano/5 p-3 font-semibold text-divano">Altro evento confermato in questa data: attrezzatura e personale potrebbero non bastare per entrambi.</p>}

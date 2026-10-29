@@ -4,7 +4,7 @@ import { computeNeeds, resolveRules, type CalcResult, type Rules } from '@/lib/c
 import { toCalc } from './fromDb'
 import { applyManual, planLines, type ExistingLine } from './lines'
 
-/** Carica tutto ciò che serve a calcolatore e costi per una pratica (richiede ruolo con accesso al catalogo). */
+/** Carica tutto ciò che serve a calcolatore e costi per un evento (richiede ruolo con accesso al catalogo). */
 export async function loadContext(eventId: string) {
   const s = await createServerClient()
   const [ev, ep, products, kitItems, items, staffRoles, rules, lines, pricing] = await Promise.all([
@@ -25,7 +25,7 @@ export async function loadContext(eventId: string) {
   return { supabase: s, event, ...mapped, products: products.data ?? [], saved, rules: resolveRules(saved).rules, lines: (lines.data ?? []) as (ExistingLine & { unit_price_cents: number | null })[] }
 }
 
-/** Ricalcola e salva le righe della pratica. Funzione semplice (non action): si può chiamare durante il render. */
+/** Ricalcola e salva le righe dell’evento. Funzione semplice (non action): si può chiamare durante il render. */
 export async function recalcEvent(eventId: string): Promise<{ warnings: string[] }> {
   const c = await loadContext(eventId)
   const res = computeNeeds(c.ev, c.saved, c.cat)

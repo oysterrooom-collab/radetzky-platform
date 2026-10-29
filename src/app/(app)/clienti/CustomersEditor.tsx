@@ -23,7 +23,7 @@ export default function CustomersEditor({ customers, canEdit }: { customers: Cus
   return (<div className="grid gap-3">
     {canEdit && open !== 'new' && <Button className="justify-self-start" onClick={() => setOpen('new')}>Aggiungi un cliente</Button>}
     {open === 'new' && <Card><CustomerForm onSaved={() => setOpen(null)} onCancel={() => setOpen(null)} /></Card>}
-    {!customers.length && <Empty>Nessun cliente. Aggiungine uno o crealo direttamente da una nuova pratica.</Empty>}
+    {!customers.length && <Empty>Nessun cliente. Aggiungine uno o crealo direttamente da un nuovo evento.</Empty>}
     {customers.map((c) => (<Card key={c.id}>
       <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-lg font-bold">{c.name}</p><p className="text-sm text-grey">{[c.email, c.phone, c.vat_or_cf].filter(Boolean).join('  ·  ') || 'Nessun contatto'}</p></div>
         {canEdit && <button className="underline" onClick={() => setOpen(open === c.id ? null : c.id)}>Modifica</button>}</div>

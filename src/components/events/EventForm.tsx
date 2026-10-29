@@ -25,7 +25,7 @@ export default function EventForm({ id, initial, customers, canEdit }: { id?: st
   const d = !canEdit
   return (<fieldset disabled={d} className="grid gap-5">
     <Card><h2 className="mb-4 text-xl font-bold">Cliente ed evento</h2><div className="grid gap-3 md:grid-cols-3">
-      <Field label="Nome della pratica" hint="Ad esempio Matrimonio Rossi" htmlFor="e-title"><input id="e-title" className={inputCls} value={f.title} onChange={set('title')} /></Field>
+      <Field label="Nome dell’evento" hint="Ad esempio Matrimonio Rossi" htmlFor="e-title"><input id="e-title" className={inputCls} value={f.title} onChange={set('title')} /></Field>
       <Field label="Tipo di evento" htmlFor="e-kind"><select id="e-kind" className={inputCls} value={f.kind} onChange={set('kind')}>{Object.entries(KIND_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
       <Field label="Cliente" htmlFor="e-cust"><div className="flex gap-2"><select id="e-cust" className={inputCls} value={f.customer_id} onChange={set('customer_id')}><option value="">Nessuno</option>{list.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
         {canEdit && <button type="button" className="whitespace-nowrap text-sm font-semibold underline" onClick={() => setNewCust(true)}>Nuovo</button>}</div></Field>
@@ -51,7 +51,7 @@ export default function EventForm({ id, initial, customers, canEdit }: { id?: st
         <label key={k} className="flex items-center gap-2"><input type="checkbox" checked={f.location[k]} onChange={setL(k)} />{l}</label>)}</div>
       <Field label="Note sulla location" htmlFor="l-notes"><input id="l-notes" className={inputCls} value={f.location.notes} onChange={setL('notes')} /></Field>
     </div>
-    <div className="mt-3"><Field label="Note della pratica" htmlFor="e-notes"><textarea id="e-notes" rows={3} className={`${inputCls} py-2`} value={f.notes} onChange={set('notes')} /></Field></div></Card>
-    {canEdit && <div className="flex flex-wrap items-center gap-3"><Button disabled={pending} onClick={submit}>{id ? 'Salva la pratica' : 'Crea la pratica'}</Button>{msg && <p role="status" className={`font-semibold ${msg.ok ? 'text-ok' : 'text-divano'}`}>{msg.t}</p>}</div>}
+    <div className="mt-3"><Field label="Note dell’evento" htmlFor="e-notes"><textarea id="e-notes" rows={3} className={`${inputCls} py-2`} value={f.notes} onChange={set('notes')} /></Field></div></Card>
+    {canEdit && <div className="flex flex-wrap items-center gap-3"><Button disabled={pending} onClick={submit}>{id ? 'Salva l’evento' : 'Crea l’evento'}</Button>{msg && <p role="status" className={`font-semibold ${msg.ok ? 'text-ok' : 'text-divano'}`}>{msg.t}</p>}</div>}
   </fieldset>)
 }
