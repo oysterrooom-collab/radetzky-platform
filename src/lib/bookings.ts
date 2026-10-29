@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { splitHours } from '@/lib/sites/schemas'
 
 type Res<T> = { ok: true; data: T } | { ok: false; error: string }
 export type BookingStatus = 'nuova' | 'confermata' | 'rifiutata' | 'annullata'
@@ -56,4 +57,17 @@ export function bookingBuckets<T extends B>(rows: T[], today: string) {
     upcoming: rows.filter((r) => r.status === 'confermata' && r.date >= today).sort(byWhen),
     past: rows.filter((r) => r.date < today || (r.status !== 'nuova' && r.status !== 'confermata')).sort((a, b) => byWhen(b, a)),
   }
+}
+
+/** L'orario richiesto rientra nelle fasce del giorno (fino a un'ora prima della chiusura, mai oltre le 23:30)? Oggi serve mezz'ora di anticipo.
+ *  Stessa regola del modulo sul sito: vale anche per chi chiama l'API saltando il sito. */
+export function isBookable(date: string, time: string, info: Record<string, string>, now: { date: string; minutes: number }): boolean {
+  const day = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'][new Date(date + 'T12:00:00Z').getUTCDay()]
+  const v = info[`oyster_${day}`]
+  if (v === undefined || v.trim() === '') return true            // orario non impostato: decide lo staff
+  const h = splitHours(v)
+  if (!h.open) return false
+  const m = Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5))
+  if (date === now.date && m < now.minutes + 30) return false
+  return h.ranges.some(([a, b]) => m >= a && m <= Math.min(b - 60, 23 * 60 + 30))
 }
