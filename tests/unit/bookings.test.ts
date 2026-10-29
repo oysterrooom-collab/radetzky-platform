@@ -22,6 +22,10 @@ describe('parseBooking', () => {
     expect(parseBooking({ ...ok, em: 'nonvalida' }, today).ok).toBe(false)
   })
 })
+it('«più di 12» dal sito diventa 13 persone con la nota', () => {
+  const r = parseBooking({ ...ok, px: '13+' }, today)
+  expect(r.ok && r.data.guests).toBe(13); expect(r.ok && r.data.notes).toContain('Più di 12 persone')
+})
 describe('whatsappLink', () => {
   it('numero italiano senza prefisso → 39…, messaggio con data e ora', () => {
     const u = whatsappLink('320 610 0000', 'Ciao Mario')

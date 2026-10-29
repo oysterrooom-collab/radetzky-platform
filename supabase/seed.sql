@@ -104,7 +104,8 @@ insert into public.rules (key, value) values
     "bartender":     {"in_piedi":50,"buffet":50,"cena_servita":50,"min":1,"when":"open_bar"},
     "cuoco":         {"in_piedi":40,"buffet":40,"cena_servita":40,"min":1,"when":"hot"},
     "ostricaro":     {"in_piedi":80,"buffet":80,"cena_servita":80,"min":1,"when":"oyster_island"},
-    "lavapiatti":    {"in_piedi":80,"buffet":60,"cena_servita":50,"min":1,"when":"washables"}
+    "lavapiatti":    {"in_piedi":80,"buffet":60,"cena_servita":50,"min":1,"when":"washables"},
+    "autista":       {"in_piedi":150,"buffet":150,"cena_servita":150,"min":1,"when":"transport"}
   }'),
   ('hours', '{"setup":2,"teardown":1.5}'),
   ('furniture', '{

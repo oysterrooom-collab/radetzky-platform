@@ -30,16 +30,19 @@ describe('parseDish', () => {
 })
 
 describe('parseInfo', () => {
-  it('accetta orari a ore intere "17-23", "17 - 24" e "chiuso"', () => {
-    const r = parseInfo({ oyster_lun: '17-23', oyster_mar: 'Chiuso', oyster_mer: '17 - 24', oyster_avviso: ' Ciao ' })
+  it('accetta orari singoli, spezzati, con mezz’ore e dopo mezzanotte', () => {
+    const r = parseInfo({ oyster_lun: '17-23', oyster_mar: 'Chiuso', oyster_mer: '12 - 15, 18:30 - 23', oyster_gio: '18-2', oyster_avviso: ' Ciao ' })
     expect(r.ok).toBe(true)
-    if (r.ok) expect(r.data).toMatchObject({ oyster_lun: '17-23', oyster_mar: 'chiuso', oyster_mer: '17-24', oyster_avviso: 'Ciao' })
+    if (r.ok) expect(r.data).toMatchObject({ oyster_lun: '17-23', oyster_mar: 'chiuso', oyster_mer: '12-15,18:30-23', oyster_gio: '18-2', oyster_avviso: 'Ciao' })
   })
-  it('rifiuta orari illeggibili e chiavi non previste', () => {
+  it('rifiuta orari illeggibili, fasce sovrapposte o fuori ordine, chiavi non previste', () => {
     expect(parseInfo({ oyster_lun: 'sera' }).ok).toBe(false)
     expect(parseInfo({ oyster_lun: '25-30' }).ok).toBe(false)
-    expect(parseInfo({ oyster_lun: '17:30-23' }).ok).toBe(false)   // il sito legge solo ore intere
-    expect(parseInfo({ oyster_lun: '23-17' }).ok).toBe(false)
+    expect(parseInfo({ oyster_lun: '17:20-23' }).ok).toBe(false)          // solo :00 e :30
+    expect(parseInfo({ oyster_lun: '12-16,15-23' }).ok).toBe(false)       // sovrapposte
+    expect(parseInfo({ oyster_lun: '18-23,12-15' }).ok).toBe(false)       // fuori ordine
+    expect(parseInfo({ oyster_lun: '12-2,18-23' }).ok).toBe(false)        // solo l’ultima fascia può passare la mezzanotte
+    expect(parseInfo({ oyster_lun: '17-17' }).ok).toBe(false)
     expect(parseInfo({ hack: 'x' }).ok).toBe(false)
   })
 })
@@ -59,14 +62,17 @@ describe('siti modificabili', () => {
 
 import { splitHours, joinHours } from '@/lib/sites/schemas'
 describe('orari per il selettore', () => {
-  it('"17-23" → aperto dalle 17 alle 23; "chiuso" → chiuso; vuoto → aperto con orario standard', () => {
-    expect(splitHours('17-23')).toEqual({ open: true, from: 17, to: 23 })
-    expect(splitHours('chiuso')).toEqual({ open: false, from: 17, to: 23 })
-    expect(splitHours('')).toEqual({ open: true, from: 17, to: 23 })
+  it('stringa → fasce in minuti; chiuso; vuoto = 17–23', () => {
+    expect(splitHours('17-23')).toEqual({ open: true, ranges: [[1020, 1380]] })
+    expect(splitHours('12-15,18:30-2')).toEqual({ open: true, ranges: [[720, 900], [1110, 1560]] })
+    expect(splitHours('chiuso')).toEqual({ open: false, ranges: [[1020, 1380]] })
+    expect(splitHours('')).toEqual({ open: true, ranges: [[1020, 1380]] })
   })
   it('ricompone nel formato letto dal sito, e passa la validazione', () => {
-    expect(joinHours({ open: true, from: 11, to: 24 })).toBe('11-24')
-    expect(joinHours({ open: false, from: 11, to: 24 })).toBe('chiuso')
-    expect(parseInfo({ oyster_dom: joinHours({ open: true, from: 11, to: 24 }) }).ok).toBe(true)
+    const h = { open: true, ranges: [[720, 900], [1110, 1560]] as [number, number][] }
+    expect(joinHours(h)).toBe('12-15,18:30-2')
+    expect(joinHours({ open: true, ranges: [[660, 1440]] })).toBe('11-24')
+    expect(joinHours({ ...h, open: false })).toBe('chiuso')
+    expect(parseInfo({ oyster_dom: joinHours(h) }).ok).toBe(true)
   })
 })
