@@ -1,4 +1,5 @@
 'use server'
+import { parseQty } from '@/lib/calc/qty'
 import { revalidatePath } from 'next/cache'
 import { createServerClient } from '@/lib/supabase/server'
 import { recalcEvent } from '@/lib/calc/context'
@@ -10,9 +11,11 @@ export async function recalc(eventId: string): Promise<R> {
   revalidatePath(`/pratiche/${eventId}`, 'layout'); return { ok: true }
 }
 export async function setManualQty(eventId: string, lineId: string, raw: string | null): Promise<R> {
-  let v: number | null = null
-  if (raw != null && raw.trim() !== '') { v = Number(raw.replace(',', '.')); if (!Number.isFinite(v) || v < 0) return { ok: false, error: 'Scrivi una quantità da 0 in su.' } }
   const s = await createServerClient()
+  const { data: line } = await s.from('event_lines').select('kind').eq('id', lineId).eq('event_id', eventId).maybeSingle()
+  if (!line) return { ok: false, error: DENIED }
+  const pq = parseQty(raw, line.kind === 'staff' || line.kind === 'item'); if (!pq.ok) return pq
+  const v = pq.value
   const { data } = await s.from('event_lines').update({ qty_manual: v }).eq('id', lineId).eq('event_id', eventId).select('id')
   if (!data?.length) return { ok: false, error: DENIED }
   revalidatePath(`/pratiche/${eventId}`, 'layout'); return { ok: true }
