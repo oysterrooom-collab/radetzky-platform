@@ -1,3 +1,5 @@
+import { addDays } from '@/lib/bookings'
+import { romeToday } from '@/lib/events/rules'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getSession } from '@/lib/auth/session'
@@ -18,7 +20,7 @@ export default async function Sito({ searchParams }: { searchParams: Promise<{ s
   const tabs: [string, string][] = [...sites.map((x) => [x, SITE_LABEL[x]] as [string, string]), ['info', 'Avvisi e orari'], ['numeri', 'Visite']]
   let body: React.ReactNode
   if (tab === 'numeri') {
-    const from = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10)
+    const from = addDays(romeToday(), -30)
     const { data } = await supabase.from('site_stats').select('site, event, n').gte('day', from)
     body = <Stats rows={data ?? []} />
   } else if (tab === 'info') {

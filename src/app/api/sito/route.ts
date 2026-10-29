@@ -7,7 +7,7 @@ const HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'public, max-age=0, must-revalidate',
-  'Netlify-CDN-Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',   // i siti si aggiornano entro un minuto
+  'Netlify-CDN-Cache-Control': 'public, s-maxage=20',   // nessun «stale»: una modifica è online al massimo dopo 20 secondi
 }
 export async function GET() {
   const s = anonClient()

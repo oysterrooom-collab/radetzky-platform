@@ -1,7 +1,7 @@
 'use server'
 import { revalidatePath } from 'next/cache'
 import { createServerClient } from '@/lib/supabase/server'
-import { parseDish, parseInfo, type Site } from '@/lib/sites/schemas'
+import { parseDish, parseInfo, sortForSection, type Site } from '@/lib/sites/schemas'
 type R = { ok: true } | { ok: false; error: string }
 const DENIED = 'Salvataggio non riuscito: non hai i permessi per questo sito.'
 const done = (): R => { revalidatePath('/sito'); return { ok: true } }
@@ -10,13 +10,23 @@ const done = (): R => { revalidatePath('/sito'); return { ok: true } }
 export async function saveDish(id: string | null, raw: unknown): Promise<R> {
   const p = parseDish(raw); if (!p.ok) return p
   const s = await createServerClient()
-  if (id) {
-    const { data, error } = await s.from('site_menu').update(p.data).eq('id', id).select('id')
-    return error || !data?.length ? { ok: false, error: DENIED } : done()
-  }
-  const { data: last } = await s.from('site_menu').select('sort').eq('site', p.data.site).order('sort', { ascending: false }).limit(1)
-  const { data, error } = await s.from('site_menu').insert({ ...p.data, sort: (last?.[0]?.sort ?? 0) + 10 }).select('id')
-  return error || !data?.length ? { ok: false, error: DENIED } : done()
+  const { data: rows } = await s.from('site_menu').select('id, section, sort').eq('site', p.data.site)
+  const cur = rows?.find((r) => r.id === id)
+  if (id && !cur) return { ok: false, error: DENIED }
+  // nuovo piatto o cambio di sezione: in fondo alla sezione di arrivo, senza spostare le sezioni
+  const sort = cur && cur.section === p.data.section ? cur.sort : sortForSection((rows ?? []).filter((r) => r.id !== id), p.data.section)
+  const { data, error } = id ? await s.from('site_menu').update({ ...p.data, sort }).eq('id', id).select('id') : await s.from('site_menu').insert({ ...p.data, sort }).select('id')
+  if (error || !data?.length) return { ok: false, error: DENIED }
+  if (!cur || cur.section !== p.data.section) await renumber(s, p.data.site)
+  return done()
+}
+/** Rinumera 10, 20, 30… tenendo l'ordine attuale delle sezioni e dei piatti. */
+async function renumber(s: Awaited<ReturnType<typeof createServerClient>>, site: Site) {
+  const { data: rows } = await s.from('site_menu').select('id, section, sort').eq('site', site).order('sort').order('name')
+  if (!rows) return
+  const sections = [...new Set(rows.map((r) => r.section))]
+  const ordered = sections.flatMap((sec) => rows.filter((r) => r.section === sec))
+  for (const [k, r] of ordered.entries()) if (r.sort !== (k + 1) * 10) await s.from('site_menu').update({ sort: (k + 1) * 10 }).eq('id', r.id)
 }
 export async function deleteDish(id: string): Promise<R> {
   const s = await createServerClient()

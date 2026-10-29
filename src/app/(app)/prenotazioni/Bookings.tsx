@@ -20,10 +20,10 @@ const msgOk = (b: BookingRow) => `Ciao ${first(b.name)}, ti confermiamo il tavol
 const msgNo = (b: BookingRow) => `Ciao ${first(b.name)}, purtroppo ${shortDay(b.date)} alle ${b.time} siamo al completo. Se ti va ti proponiamo un altro orario: rispondi pure a questo messaggio.`
 
 function Card1({ b, today, onMsg }: { b: BookingRow; today: string; onMsg: (m: Msg) => void }) {
-  const [pending, start] = useTransition()
+  const [pending, start] = useTransition(), [sure, setSure] = useState(false)
   const act = (status: BookingStatus, wa?: string, ok = 'Fatto ✓') => {
     if (wa) window.open(wa, '_blank', 'noopener')     // aperto subito, dentro il clic, così il browser non lo blocca
-    start(async () => { const r = await setBookingStatus(b.id, status); onMsg(r.ok ? { ok: true, t: ok } : { ok: false, t: r.error }) })
+    start(async () => { const r = await setBookingStatus(b.id, status); onMsg(r.ok ? { ok: true, t: ok } : { ok: false, t: wa ? `${r.error} Non inviare il messaggio WhatsApp appena aperto.` : r.error }) })
   }
   const link = 'min-h-11 content-center px-2 font-semibold underline'
   return (<Card className="grid gap-3">
@@ -41,9 +41,14 @@ function Card1({ b, today, onMsg }: { b: BookingRow; today: string; onMsg: (m: M
       </>}
       {b.status === 'confermata' && b.date >= today && <>
         <a className={link} href={whatsappLink(b.phone, `Ciao ${first(b.name)}, `)} target="_blank" rel="noreferrer">WhatsApp</a>
-        <button className={`${link} text-divano`} disabled={pending} onClick={() => act('annullata', undefined, 'Annullata')}>Annulla prenotazione</button>
+        {sure ? <span className="flex flex-wrap items-center gap-2"><span className="text-sm">Annullarla davvero?</span>
+          <Button variant="danger" disabled={pending} onClick={() => act('annullata', undefined, 'Annullata. La trovi in Archivio, da lì puoi ripristinarla.')}>Sì, annulla</Button>
+          <button className={link} onClick={() => setSure(false)}>No</button></span>
+          : <button className={`${link} text-divano`} onClick={() => setSure(true)}>Annulla prenotazione</button>}
       </>}
       {(b.status !== 'nuova' && !(b.status === 'confermata' && b.date >= today)) && <Pill tone={b.status === 'confermata' ? 'ok' : 'neutral'}>{STATUS_LABEL[b.status]}</Pill>}
+      {(b.status === 'annullata' || b.status === 'rifiutata') && b.date >= today && <button className={link} disabled={pending}
+        onClick={() => act(b.status === 'annullata' ? 'confermata' : 'nuova', undefined, b.status === 'annullata' ? 'Ripristinata: di nuovo confermata' : 'Ripristinata: di nuovo da confermare')}>Ripristina</button>}
       <a className={link} href={`tel:${b.phone.replace(/\s/g, '')}`}>Chiama {b.phone}</a>
       {b.email && <a className={link} href={`mailto:${b.email}`}>Email</a>}
     </div>
@@ -55,7 +60,7 @@ function NewBooking({ today, onDone, onMsg }: { today: string; onDone: () => voi
   const [source, setSource] = useState<'telefono' | 'banco'>('telefono')
   const [pending, start] = useTransition(), [err, setErr] = useState('')
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value })
-  const times = Array.from({ length: 30 }, (_, i) => `${String(10 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`)
+  const times = Array.from({ length: 28 }, (_, i) => `${String(10 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`)
   return (<Card><form className="grid gap-3" onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await addBooking(f, source); if (r.ok) { onMsg({ ok: true, t: 'Prenotazione aggiunta ✓' }); onDone() } else setErr(r.error) }) }}>
     <h2 className="text-xl font-bold">Nuova prenotazione</h2>
     <div className="flex gap-2">{(['telefono', 'banco'] as const).map((s) => <button key={s} type="button" aria-pressed={source === s} onClick={() => setSource(s)}
