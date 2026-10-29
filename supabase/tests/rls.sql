@@ -167,16 +167,29 @@ reset role;
 select pg_temp.check((select count(*) from public.audit_log where table_name='site_menu') >= 2, 'registro traccia le modifiche al menù');
 
 -- ── Prenotazioni e statistiche dei siti ──
+-- il pubblico non chiama più request_booking: passa dall'API del sito (service role, con honeypot, validazione e limite per IP)
 set role anon;
-select pg_temp.check(not pg_temp.fails($$select public.request_booking('Mario Rossi','+39 320 6100000','m@t.it', current_date + 3, '20:00', 2, 'Cena', 'Banco Oysteroom', '')$$), 'il sito invia una richiesta di prenotazione');
-select pg_temp.check(pg_temp.fails($$select count(*) from public.bookings where name is not null having count(*) > 0$$) or (select count(*) from public.bookings) = 0, 'anon non legge le prenotazioni');
-select pg_temp.check(pg_temp.fails($$select public.request_booking('Mario Rossi','+39 320 6100000','', current_date - 1, '20:00', 2, '', '', '')$$), 'niente prenotazioni nel passato');
-select public.request_booking('Mario Rossi','+39 320 6100000','', current_date + 3, '21:00', 2, '', '', '');
-select public.request_booking('Mario Rossi','+39 320 6100000','', current_date + 4, '21:00', 2, '', '', '');
-select pg_temp.check(pg_temp.fails($$select public.request_booking('Mario Rossi','320 6100000','', current_date + 5, '21:00', 2, '', '', '')$$), 'limite: massimo 3 richieste in 10 minuti dallo stesso numero');
+select pg_temp.check(pg_temp.fails($$select public.request_booking('Mario Rossi','+39 320 6100000','m@t.it', current_date + 3, '20:00', 2, 'Cena', 'Banco Oysteroom', '', 'ip1')$$), 'anon non chiama request_booking direttamente');
+select pg_temp.check(pg_temp.fails($$select count(*) from public.bookings having count(*) > 0$$) or (select count(*) from public.bookings) = 0, 'anon non legge le prenotazioni');
+select pg_temp.check(pg_temp.fails($$select public.track_event('oyster', 'evento_inventato')$$), 'statistiche: solo eventi noti');
 select public.track_event('oyster', 'visita'); select public.track_event('oyster', 'visita');
 select pg_temp.check(pg_temp.fails($$select public.track_event('altro', 'visita')$$), 'statistiche: solo siti noti');
 reset role;
+set role service_role;
+select public.request_booking('Mario Rossi','+39 320 6100000','m@t.it', current_date + 3, '20:00', 2, 'Cena', 'Banco Oysteroom', '', 'ip1');
+select pg_temp.check(pg_temp.fails($$select public.request_booking('Mario Rossi','+39 320 6100000','', current_date - 1, '20:00', 2, '', '', '', 'ip1')$$), 'niente prenotazioni nel passato');
+select pg_temp.check(pg_temp.fails($$select public.request_booking('Mario Rossi', repeat('1', 200),'', current_date + 3, '20:00', 2, '', '', '', 'ip9')$$), 'telefono troppo lungo rifiutato');
+select pg_temp.check(pg_temp.fails($$select public.request_booking(repeat('x', 300),'320 6100000','', current_date + 3, '20:00', 2, '', '', '', 'ip9')$$), 'nome troppo lungo rifiutato');
+select public.request_booking('Mario Rossi','+39 320 6100000','', current_date + 3, '21:00', 2, '', '', '', 'ip1');
+select public.request_booking('Mario Rossi','+39 320 6100000','', current_date + 4, '21:00', 2, '', '', '', 'ip2');
+select pg_temp.check(pg_temp.fails($$select public.request_booking('Mario Rossi','320 6100000','', current_date + 5, '21:00', 2, '', '', '', 'ip3')$$), 'limite: massimo 3 richieste in 10 minuti dallo stesso numero');
+select public.request_booking('Anna','333 1111111','', current_date + 5, '21:00', 2, '', '', '', 'ip7');
+select public.request_booking('Bea','333 2222222','', current_date + 5, '21:00', 2, '', '', '', 'ip7');
+select public.request_booking('Ciro','333 3333333','', current_date + 5, '21:00', 2, '', '', '', 'ip7');
+select public.request_booking('Dino','333 4444444','', current_date + 5, '21:00', 2, '', '', '', 'ip7');
+select pg_temp.check(pg_temp.fails($$select public.request_booking('Elio','333 5555555','', current_date + 5, '21:00', 2, '', '', '', 'ip7')$$), 'limite: massimo 4 richieste in 10 minuti dalla stessa connessione');
+reset role;
+delete from public.bookings where name in ('Anna','Bea','Ciro','Dino');
 select pg_temp.check((select count(*) from public.bookings) = 3, 'tre richieste salvate');
 select pg_temp.check((select n from public.site_stats where site='oyster' and event='visita' and day=current_date) = 2, 'contatore visite');
 -- staff Oysteroom vede e conferma
