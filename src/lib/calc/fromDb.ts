@@ -14,6 +14,7 @@ export function toCalc(d: Db) {
   const itemKey = new Map(d.items.map((i) => [i.id, i.key]))
   const ev: CalcEvent = {
     guests: d.event.guests ?? 0, style: d.event.style as Style, seatedPct: d.event.seated_pct, openBar: d.event.open_bar, oysterIsland: d.event.oyster_island,
+    km: Number(d.event.location?.km ?? 0) || 0,
     durationH: durationHours(d.event.start_time?.slice(0, 5) ?? null, d.event.end_time?.slice(0, 5) ?? null),
     products: d.eventProducts.map((p) => ({ productId: p.product_id, qtyPerGuest: p.qty_per_guest ?? undefined, qtyFixed: p.qty_fixed ?? undefined })),
   }

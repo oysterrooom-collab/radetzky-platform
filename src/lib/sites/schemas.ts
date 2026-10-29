@@ -36,14 +36,31 @@ export function parseDish(raw: unknown): Res<Dish> {
   return { ok: true, data: { ...r.data, price } }
 }
 
-/** Orari: ore intere "17-23" (fino a 24) oppure "chiuso". Il sito legge solo ore intere. */
+/** Orari: una o più fasce "12-15,18:30-23", mezz’ore ammesse, l’ultima può finire dopo mezzanotte ("18-2"); oppure "chiuso". */
+type Range = [number, number]
+const toMin = (h: string, m?: string) => Number(h) * 60 + Number(m ?? 0)
+function parseRanges(t: string): Range[] | null {
+  const parts = t.split(/\s*[,;]\s*|\s+e\s+/).filter(Boolean)
+  if (!parts.length || parts.length > 3) return null
+  const out: Range[] = []
+  for (const [i, p] of parts.entries()) {
+    const m = p.match(/^(\d{1,2})(?:[:.](\d{2}))?\s*-\s*(\d{1,2})(?:[:.](\d{2}))?$/)
+    if (!m || [m[2], m[4]].some((x) => x && x !== '00' && x !== '30')) return null
+    const a = toMin(m[1], m[2]); let b = toMin(m[3], m[4])
+    if (a > 23 * 60 + 30 || b > 24 * 60) return null
+    if (b <= a) { if (i !== parts.length - 1 || b > 4 * 60 || b === a) return null; b += 24 * 60 }
+    if (out.length && a < out[out.length - 1][1]) return null
+    out.push([a, b])
+  }
+  return out
+}
+const fmtMin = (m: number) => { const h = m === 1440 ? 24 : Math.floor(m / 60) % 24, r = m % 60; return r ? `${h}:${String(r).padStart(2, '0')}` : `${h}` }
+const joinRanges = (r: Range[]) => r.map(([a, b]) => `${fmtMin(a)}-${fmtMin(b)}`).join(',')
 function normHours(v: string): string | null {
   const t = v.trim().toLowerCase()
   if (!t || t.startsWith('chius')) return t ? 'chiuso' : ''
-  const m = t.match(/^(\d{1,2})\s*-\s*(\d{1,2})$/)
-  if (!m) return null
-  const a = +m[1], b = +m[2]
-  return a <= 23 && b <= 24 && a < b ? `${a}-${b}` : null
+  const r = parseRanges(t)
+  return r ? joinRanges(r) : null
 }
 export function parseInfo(raw: Record<string, unknown>): Res<Record<string, string>> {
   const out: Record<string, string> = {}
@@ -52,7 +69,7 @@ export function parseInfo(raw: Record<string, unknown>): Res<Record<string, stri
     const s = String(v ?? '').trim()
     if (k.endsWith('_avviso')) { if (s.length > 200) return { ok: false, error: 'Avviso troppo lungo (max 200 caratteri).' }; out[k] = s; continue }
     const h = normHours(s)
-    if (h === null) return { ok: false, error: `Orario non valido per ${DAYS.find(([d]) => k.endsWith(d))?.[1]}: scrivi ad esempio 17-23 oppure chiuso.` }
+    if (h === null) return { ok: false, error: `Orari non validi per ${DAYS.find(([d]) => k.endsWith(d))?.[1]}: le fasce devono essere in ordine e non sovrapporsi.` }
     out[k] = h
   }
   return { ok: true, data: out }
@@ -64,12 +81,13 @@ export function editableSites(ms: Membership[]): Site[] {
   return SITES.filter((s) => ok.has(SITE_VENUE[s]))
 }
 
-/** Orari per il selettore a tendina: "17-23" ↔ { open, from, to }. */
-export type Hours = { open: boolean; from: number; to: number }
+/** Orari per il selettore: "12-15,18:30-2" ↔ { open, ranges: [[720,900],[1110,1560]] } in minuti. */
+export type Hours = { open: boolean; ranges: Range[] }
+const STD: Range[] = [[17 * 60, 23 * 60]]
 export function splitHours(v: string): Hours {
-  const m = String(v ?? '').match(/^(\d{1,2})-(\d{1,2})$/)
-  if (m) return { open: true, from: +m[1], to: +m[2] }
-  return { open: !String(v ?? '').toLowerCase().startsWith('chius'), from: 17, to: 23 }
+  const t = String(v ?? '').trim().toLowerCase()
+  if (t.startsWith('chius')) return { open: false, ranges: STD }
+  return { open: true, ranges: (t && parseRanges(t)) || STD }
 }
-export const joinHours = (h: Hours) => (h.open ? `${h.from}-${h.to}` : 'chiuso')
+export const joinHours = (h: Hours) => (h.open ? joinRanges(h.ranges) : 'chiuso')
 export const SITE_URL: Record<'oyster' | 'radetzky', string> = { oyster: 'https://danilorusciano.it/oyster/', radetzky: 'https://danilorusciano.it/Radetzky/' }

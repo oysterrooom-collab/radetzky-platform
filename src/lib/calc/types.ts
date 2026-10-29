@@ -4,6 +4,8 @@ export type Unit = 'pezzo' | 'g' | 'bottiglia'
 
 export interface CalcEvent {
   guests: number; style: Style; seatedPct: number; openBar: boolean; oysterIsland: boolean; durationH: number
+  /** km dalla sede: se > 0 serve un autista */
+  km?: number
   products: { productId: string; qtyPerGuest?: number; qtyFixed?: number }[]
 }
 export interface CalcCatalog {
@@ -16,9 +18,9 @@ export interface Rental { key: string; needed: number; owned: number; toRent: nu
 export interface CalcResult { needs: Need[]; rentals: Rental[]; warnings: string[] }
 
 type ByStyle = { in_piedi: number; buffet: number; cena_servita: number }
-export interface RatioRule extends ByStyle { min: number; when: 'always' | 'open_bar' | 'hot' | 'oyster_island' | 'washables' }
+export interface RatioRule extends ByStyle { min: number; when: 'always' | 'open_bar' | 'hot' | 'oyster_island' | 'washables' | 'transport' }
 export interface Rules {
-  staff: { cameriere: RatioRule; bartender: RatioRule; cuoco: RatioRule; ostricaro: RatioRule; lavapiatti: RatioRule; capo_servizio: { above_guests: number; count: number } }
+  staff: { cameriere: RatioRule; bartender: RatioRule; cuoco: RatioRule; ostricaro: RatioRule; lavapiatti: RatioRule; autista: RatioRule; capo_servizio: { above_guests: number; count: number } }
   hours: { setup: number; teardown: number }
   furniture: { round_table_seats: number; buffet_table_per: number; buffet_table_min: number; high_table_per: number; chairs: ByStyle; tablecloth_extra: number; napkin_extra: number }
   spare: { stoviglie: number; posate: number; bicchieri: number }

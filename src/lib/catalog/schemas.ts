@@ -66,6 +66,7 @@ export function validateRules(r: Rules): { ok: true } | { ok: false; error: stri
   for (const v of [f.chairs.cena_servita, f.chairs.buffet, f.chairs.in_piedi, f.tablecloth_extra, f.napkin_extra, r.spare.stoviglie, r.spare.posate, r.spare.bicchieri])
     if (!(v >= 0 && v <= 3)) return bad('Percentuali di sedie, tovagliato e ricambi: valori tra 0% e 300%')
   if (!(r.pricing.target_margin >= 0 && r.pricing.target_margin <= 0.95)) return bad('Margine obiettivo: tra 0% e 95%')
+  if (r.pricing.low_margin > r.pricing.target_margin) return bad('La soglia del margine in rosso deve essere sotto il margine obiettivo')
   if (!(r.pricing.vat_pct >= 0 && r.pricing.vat_pct <= 30)) return bad('IVA: tra 0% e 30%')
   if (r.pricing.eur_per_km_cents < 0 || r.pricing.trips < 0) return bad('Trasporto: valori da 0 in su')
   return { ok: true }

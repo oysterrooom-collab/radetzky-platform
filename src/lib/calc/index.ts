@@ -14,6 +14,7 @@ export function resolveRules(rules: Partial<Rules>): { rules: Rules; warnings: s
     if (rules[k] == null) warnings.push(`Regola ${k} non trovata, uso il valore di partenza`)
     else (out as unknown as Record<string, unknown>)[k] = rules[k]
   }
+  out.staff = { ...DEFAULT_RULES.staff, ...out.staff }   // ruoli aggiunti dopo (es. autista) prendono il valore di partenza
   return { rules: out, warnings }
 }
 
@@ -27,7 +28,9 @@ export function computeNeeds(ev: CalcEvent, saved: Partial<Rules>, cat: CalcCata
   for (const [k, v] of Object.entries(tableware(ev, cat, rules.spare))) items[k] = (items[k] ?? 0) + v
   for (const k of Object.keys(items)) items[k] = up(items[k])
   const flags = {
-    always: true, open_bar: ev.openBar, oyster_island: ev.oysterIsland,
+    always: true, oyster_island: ev.oysterIsland, transport: (ev.km ?? 0) > 0,
+    // cocktail = bevanda contata a pezzo (Spritz, Negroni): serve il bartender anche senza open bar
+    open_bar: ev.openBar || ev.products.some((p) => cat.products[p.productId]?.course === 'bevanda' && cat.products[p.productId]?.unit === 'pezzo'),
     hot: ev.products.some((p) => cat.products[p.productId]?.hot),
     washables: Object.keys(items).some((k) => cat.items[k] && !cat.items[k].disposable && ['stoviglie', 'posate', 'bicchieri'].includes(cat.items[k].category)),
   }

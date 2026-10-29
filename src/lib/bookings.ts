@@ -20,7 +20,10 @@ const schema = z.object({
 export type Booking = { name: string; phone: string; email: string; date: string; time: string; guests: number; occasion: string; area: string; notes: string }
 /** Richiesta dal sito (chiavi corte del modulo Oysteroom) → riga della tabella. */
 export function parseBooking(raw: unknown, today: string): Res<Booking> {
-  const r = schema.safeParse(raw)
+  const o = { ...(raw as Record<string, unknown>) }
+  const big = typeof o.px === 'string' && o.px.trim().endsWith('+')       // il sito offre «più di 12» come "13+"
+  if (big) { o.px = parseInt(String(o.px), 10); o.nt = `Più di 12 persone, numero da confermare. ${String(o.nt ?? '')}`.trim() }
+  const r = schema.safeParse(o)
   if (!r.success) return { ok: false, error: r.error.issues[0]?.message ?? 'Dati non validi.' }
   const x = r.data
   if (x.d < today) return { ok: false, error: 'La data è già passata.' }
