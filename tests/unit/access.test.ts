@@ -11,10 +11,10 @@ describe('navigazione per ruolo', () => {
   })
   it('il supervisor vede gli archivi ma non le impostazioni', () => {
     const labels = buildNav([m(rad, 'supervisor')]).map((n) => n.label)
-    expect(labels).toContain('Catalogo'); expect(labels).toContain('Registro'); expect(labels).not.toContain('Impostazioni')
+    expect(labels).toContain('Siti'); expect(labels).toContain('Catalogo'); expect(labels).toContain('Registro'); expect(labels).not.toContain('Impostazioni')
   })
   it("l'admin vede tutto", () => {
-    expect(buildNav([m(rad, 'admin')]).map((n) => n.label)).toEqual(['Home', 'Pratiche', 'Clienti', 'Catalogo', 'Regole', 'Registro', 'Impostazioni'])
+    expect(buildNav([m(rad, 'admin')]).map((n) => n.label)).toEqual(['Home', 'Pratiche', 'Siti', 'Clienti', 'Catalogo', 'Regole', 'Registro', 'Impostazioni'])
   })
 })
 

@@ -130,3 +130,38 @@ select pg_temp.as_user('00000000-0000-0000-0000-000000000010');
 update public.profiles set active = false where id = '00000000-0000-0000-0000-00000000000b';
 reset role;
 select pg_temp.check((select active from public.profiles where id='00000000-0000-0000-0000-00000000000b'), 'admin Oysteroom non disattiva un admin di entrambi');
+
+-- ── Fase B1: contenuti dei siti ──
+select pg_temp.check((select count(*) from public.site_menu) = 64 and (select count(*) from public.site_info) = 9, 'menù e info dei siti importati');
+-- il pubblico (anon) legge solo le righe visibili e le info, non scrive
+set role anon;
+select pg_temp.check((select count(*) from public.site_menu where not visible) = 0, 'anon non vede i piatti nascosti');
+select pg_temp.check((select count(*) from public.site_info) = 9, 'anon legge avvisi e orari');
+select pg_temp.check(pg_temp.fails($$insert into public.site_menu(site, section, name) values ('oyster','X','Y')$$), 'anon non scrive il menù');
+select pg_temp.fails($$update public.site_info set value='hack' where key='oyster_avviso'$$);
+reset role;
+select pg_temp.check((select value from public.site_info where key='oyster_avviso') <> 'hack', 'anon non modifica gli avvisi');
+update public.site_menu set visible = false where name = 'Palmaria';
+set role anon;
+select pg_temp.check(not exists (select 1 from public.site_menu where name = 'Palmaria'), 'piatto nascosto sparisce dal pubblico');
+reset role;
+-- staff Oysteroom (A): non modifica
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+select pg_temp.check(pg_temp.fails($$insert into public.site_menu(site, section, name) values ('oyster','X','Y')$$), 'staff non modifica il menù');
+reset role;
+-- supervisor Radetzky (C): modifica Radetzky e formule, non Oysteroom
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000c');
+select pg_temp.check(not pg_temp.fails($$insert into public.site_menu(site, section, name) values ('formule','Test','Prova')$$), 'supervisor Radetzky aggiunge una formula');
+select pg_temp.check(pg_temp.fails($$insert into public.site_menu(site, section, name) values ('oyster','X','Y')$$), 'supervisor Radetzky non tocca il menù Oysteroom');
+select pg_temp.check(not exists (select 1 from public.site_menu where name = 'Palmaria'), 'supervisor Radetzky non vede i nascosti Oysteroom');
+update public.site_info set value='Chiusi per ferie' where key='radetzky_avviso';
+select pg_temp.check((select value from public.site_info where key='radetzky_avviso') = 'Chiusi per ferie', 'supervisor Radetzky cambia avviso Radetzky');
+update public.site_info set value='hack' where key='oyster_avviso';
+reset role;
+select pg_temp.check((select value from public.site_info where key='oyster_avviso') <> 'hack', 'supervisor Radetzky non cambia avviso Oysteroom');
+-- admin (B): vede i nascosti e li riattiva
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+select pg_temp.check(exists (select 1 from public.site_menu where name = 'Palmaria' and not visible), 'admin vede i piatti nascosti');
+select pg_temp.check(not pg_temp.fails($$update public.site_menu set visible = true where name = 'Palmaria'$$), 'admin riattiva un piatto');
+reset role;
+select pg_temp.check((select count(*) from public.audit_log where table_name='site_menu') >= 2, 'registro traccia le modifiche al menù');
