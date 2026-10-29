@@ -1,0 +1,9 @@
+@import "tailwindcss";
+/* Palette del marchio Radetzky: verde bottiglia, vinaccia, pietra, tovaglia */
+@theme {
+  --color-linen: #fbfbf9; --color-stone: #ecebe7; --color-iron: #1e2d2a; --color-ink: #1c1b1a;
+  --color-grey: #5a5856; --color-vinaccia: #6e1630; --color-divano: #8b0016; --color-ok: #2f6b4f; --color-warn: #a35b00;
+  --font-sans: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+html, body { background: var(--color-linen); color: var(--color-ink); }
+:focus-visible { outline: 3px solid var(--color-vinaccia); outline-offset: 2px; }
