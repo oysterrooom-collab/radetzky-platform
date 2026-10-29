@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { login, hasE2E } from './helpers/login'
 
 test.skip(!hasE2E, 'servono utenti di prova su Supabase')
-test('lo staff vede solo Home e Pratiche', async ({ page }) => {
+test('lo staff vede solo Home, Prenotazioni ed Eventi', async ({ page }) => {
   await login(page, 'E2E_STAFF')
   for (const l of ['Clienti', 'Catalogo', 'Regole', 'Impostazioni']) await expect(page.getByRole('link', { name: l })).toHaveCount(0)
 })

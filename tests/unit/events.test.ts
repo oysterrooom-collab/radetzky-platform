@@ -47,7 +47,7 @@ describe('menù della pratica', () => {
 
 describe('stato', () => {
   it('perso richiede il motivo', () => {
-    expect(checkStatus('perso', null)).toEqual({ ok: false, error: 'Indica il motivo per cui la pratica è persa' })
+    expect(checkStatus('perso', null)).toEqual({ ok: false, error: 'Indica il motivo per cui l’evento è perso' })
     expect(checkStatus('perso', 'prezzo')).toEqual({ ok: true })
     expect(checkStatus('confermato', null)).toEqual({ ok: true })
   })

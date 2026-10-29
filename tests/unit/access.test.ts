@@ -7,14 +7,16 @@ const m = (base: { venueId: string; slug: Membership['slug'] }, role: Membership
 
 describe('navigazione per ruolo', () => {
   it('lo staff vede solo Home e Pratiche', () => {
-    expect(buildNav([m(rad, 'staff', false)]).map((n) => n.label)).toEqual(['Home', 'Pratiche'])
+    expect(buildNav([m(rad, 'staff', false)]).map((n) => n.label)).toEqual(['Home', 'Eventi'])
+    expect(buildNav([m(oys, 'staff', false)]).map((n) => n.label)).toEqual(['Home', 'Prenotazioni', 'Eventi'])
   })
   it('il supervisor vede gli archivi ma non le impostazioni', () => {
     const labels = buildNav([m(rad, 'supervisor')]).map((n) => n.label)
-    expect(labels).toContain('Siti'); expect(labels).toContain('Catalogo'); expect(labels).toContain('Registro'); expect(labels).not.toContain('Impostazioni')
+    expect(labels).toContain('Siti'); expect(labels).toContain('Catalogo'); expect(labels).toContain('Storico'); expect(labels).not.toContain('Impostazioni')
   })
   it("l'admin vede tutto", () => {
-    expect(buildNav([m(rad, 'admin')]).map((n) => n.label)).toEqual(['Home', 'Pratiche', 'Siti', 'Clienti', 'Catalogo', 'Regole', 'Registro', 'Impostazioni'])
+    expect(buildNav([m(rad, 'admin')]).map((n) => n.label)).toEqual(['Home', 'Eventi', 'Siti', 'Clienti', 'Catalogo', 'Calcolatore', 'Storico', 'Impostazioni'])
+    expect(buildNav([m(rad, 'admin'), m(oys, 'admin')]).map((n) => n.label)).toEqual(['Home', 'Prenotazioni', 'Eventi', 'Siti', 'Clienti', 'Catalogo', 'Calcolatore', 'Storico', 'Impostazioni'])
   })
 })
 

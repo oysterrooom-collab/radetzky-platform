@@ -165,3 +165,33 @@ select pg_temp.check(exists (select 1 from public.site_menu where name = 'Palmar
 select pg_temp.check(not pg_temp.fails($$update public.site_menu set visible = true where name = 'Palmaria'$$), 'admin riattiva un piatto');
 reset role;
 select pg_temp.check((select count(*) from public.audit_log where table_name='site_menu') >= 2, 'registro traccia le modifiche al menù');
+
+-- ── Prenotazioni e statistiche dei siti ──
+set role anon;
+select pg_temp.check(not pg_temp.fails($$select public.request_booking('Mario Rossi','+39 320 6100000','m@t.it', current_date + 3, '20:00', 2, 'Cena', 'Banco Oysteroom', '')$$), 'il sito invia una richiesta di prenotazione');
+select pg_temp.check(pg_temp.fails($$select count(*) from public.bookings where name is not null having count(*) > 0$$) or (select count(*) from public.bookings) = 0, 'anon non legge le prenotazioni');
+select pg_temp.check(pg_temp.fails($$select public.request_booking('Mario Rossi','+39 320 6100000','', current_date - 1, '20:00', 2, '', '', '')$$), 'niente prenotazioni nel passato');
+select public.request_booking('Mario Rossi','+39 320 6100000','', current_date + 3, '21:00', 2, '', '', '');
+select public.request_booking('Mario Rossi','+39 320 6100000','', current_date + 4, '21:00', 2, '', '', '');
+select pg_temp.check(pg_temp.fails($$select public.request_booking('Mario Rossi','320 6100000','', current_date + 5, '21:00', 2, '', '', '')$$), 'limite: massimo 3 richieste in 10 minuti dallo stesso numero');
+select public.track_event('oyster', 'visita'); select public.track_event('oyster', 'visita');
+select pg_temp.check(pg_temp.fails($$select public.track_event('altro', 'visita')$$), 'statistiche: solo siti noti');
+reset role;
+select pg_temp.check((select count(*) from public.bookings) = 3, 'tre richieste salvate');
+select pg_temp.check((select n from public.site_stats where site='oyster' and event='visita' and day=current_date) = 2, 'contatore visite');
+-- staff Oysteroom vede e conferma
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+select pg_temp.check((select count(*) from public.bookings) = 3, 'staff Oysteroom vede le prenotazioni');
+update public.bookings set status = 'confermata' where time = '20:00';
+reset role;
+select pg_temp.check((select status from public.bookings where time = '20:00') = 'confermata', 'staff conferma una prenotazione');
+-- supervisor solo Radetzky (D, nuovo: C nel frattempo è anche staff Oysteroom) non le vede
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000e1','superrad@test.it');
+insert into public.memberships (user_id, venue_id, role, sees_costs) values ('00000000-0000-0000-0000-0000000000e1', current_setting('t.rad')::uuid, 'supervisor', false);
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000e1');
+select pg_temp.check((select count(*) from public.bookings) = 0, 'chi lavora solo al Radetzky non vede le prenotazioni Oysteroom');
+select pg_temp.check((select count(*) from public.site_stats) > 0, 'supervisor legge le statistiche');
+reset role;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+select pg_temp.check((select count(*) from public.site_stats) = 0, 'lo staff non legge le statistiche');
+reset role;

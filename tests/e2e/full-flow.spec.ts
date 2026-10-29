@@ -5,7 +5,7 @@ test('dalla nuova pratica al preventivo inviato, con traccia nel registro', asyn
   await login(page, 'E2E_ADMIN')
   await page.goto('/pratiche/nuova'); await page.getByLabel('Nome della pratica').fill('Flusso completo')
   await page.getByLabel('Data').fill('2027-09-18'); await page.getByLabel('Ospiti').fill('80'); await page.getByLabel('Stile di servizio').selectOption('buffet')
-  await page.getByRole('button', { name: 'Crea la pratica' }).click(); await page.waitForURL(/\/menu$/)
+  await page.getByRole('button', { name: 'Crea l’evento' }).click(); await page.waitForURL(/\/menu$/)
   await page.getByLabel('Aggiungi una formula').selectOption({ label: 'Aperitivo Radetzky' }); await page.getByRole('button', { name: 'Aggiungi' }).first().click()
   await page.getByRole('link', { name: 'Fabbisogni' }).click(); await expect(page.getByText('Personale')).toBeVisible()
   await page.getByRole('link', { name: 'Costi e prezzo' }).click(); await page.getByLabel('Prezzo a persona (IVA esclusa)').fill('45,00'); await page.getByRole('button', { name: 'Salva il prezzo' }).click()
