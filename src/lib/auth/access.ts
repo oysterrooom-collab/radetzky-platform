@@ -6,6 +6,7 @@ export interface NavItem { href: string; label: string }
 const NAV: (NavItem & { roles: AppRole[] })[] = [
   { href: '/', label: 'Home', roles: ['admin', 'supervisor', 'staff'] },
   { href: '/pratiche', label: 'Pratiche', roles: ['admin', 'supervisor', 'staff'] },
+  { href: '/sito', label: 'Siti', roles: ['admin', 'supervisor'] },
   { href: '/clienti', label: 'Clienti', roles: ['admin', 'supervisor'] },
   { href: '/catalogo', label: 'Catalogo', roles: ['admin', 'supervisor'] },
   { href: '/regole', label: 'Regole', roles: ['admin', 'supervisor'] },
