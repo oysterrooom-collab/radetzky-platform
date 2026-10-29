@@ -63,3 +63,13 @@ export function editableSites(ms: Membership[]): Site[] {
   const ok = new Set(ms.filter((m) => m.role !== 'staff').map((m) => m.slug))
   return SITES.filter((s) => ok.has(SITE_VENUE[s]))
 }
+
+/** Orari per il selettore a tendina: "17-23" ↔ { open, from, to }. */
+export type Hours = { open: boolean; from: number; to: number }
+export function splitHours(v: string): Hours {
+  const m = String(v ?? '').match(/^(\d{1,2})-(\d{1,2})$/)
+  if (m) return { open: true, from: +m[1], to: +m[2] }
+  return { open: !String(v ?? '').toLowerCase().startsWith('chius'), from: 17, to: 23 }
+}
+export const joinHours = (h: Hours) => (h.open ? `${h.from}-${h.to}` : 'chiuso')
+export const SITE_URL: Record<'oyster' | 'radetzky', string> = { oyster: 'https://danilorusciano.it/oyster/', radetzky: 'https://danilorusciano.it/Radetzky/' }

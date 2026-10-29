@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { homeBuckets, findConflicts } from '@/lib/conflicts'
 import { romeToday, KIND_LABEL } from '@/lib/events/rules'
 import { Card, Empty, LinkButton, PageHead, Pill } from '@/components/ui'
+import { editableSites, SITE_LABEL } from '@/lib/sites/schemas'
 const d = (iso: string | null) => (iso ? new Date(iso.slice(0, 10) + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }) : '—')
 export default async function Home() {
   const s = await getSession(), supabase = await createServerClient(), today = romeToday()
@@ -17,8 +18,12 @@ export default async function Home() {
   const evs = events ?? [], title = (e: { title: string | null; kind: string }) => e.title || KIND_LABEL[e.kind as keyof typeof KIND_LABEL]
   const b = homeBuckets({ today, validityDays: (settings?.value as { validity_days?: number })?.validity_days ?? 15, events: evs, quotes: quotes ?? [] })
   const conflicts = findConflicts(evs), byId = new Map(evs.map((e) => [e.id, e]))
+  const sites = editableSites(s.memberships)
   return (<>
     <PageHead title={`Ciao ${s.name.split(' ')[0]}`}>{isAdminAnywhere(s.memberships) && <LinkButton href="/pratiche/nuova">Nuova pratica</LinkButton>}</PageHead>
+    {sites.length > 0 && <Card className="mb-5"><h2 className="mb-3 text-xl font-bold">Aggiorna i siti</h2>
+      <div className="flex flex-wrap gap-2">{sites.map((x) => <LinkButton key={x} href={`/sito?s=${x}`} variant="line">{SITE_LABEL[x]}</LinkButton>)}
+        <LinkButton href="/sito?s=info" variant="line">Avvisi e orari</LinkButton></div></Card>}
     <div className="grid gap-5 lg:grid-cols-3">
       <Card className="lg:col-span-2"><h2 className="mb-3 text-xl font-bold">Prossimi eventi confermati</h2>
         {!b.upcoming.length ? <Empty>Nessun evento confermato nei prossimi 14 giorni.</Empty> : <ul className="grid gap-2">{b.upcoming.map((e) => (

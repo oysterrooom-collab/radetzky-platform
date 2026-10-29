@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getSession } from '@/lib/auth/session'
 import { createServerClient } from '@/lib/supabase/server'
-import { editableSites, SITE_LABEL, type Site } from '@/lib/sites/schemas'
+import { editableSites, SITE_LABEL, SITE_URL, type Site } from '@/lib/sites/schemas'
 import { PageHead } from '@/components/ui'
 import MenuEditor, { type Row } from './MenuEditor'
 import InfoEditor from './InfoEditor'
@@ -21,14 +21,15 @@ export default async function Sito({ searchParams }: { searchParams: Promise<{ s
     body = <InfoEditor info={Object.fromEntries((data ?? []).map((r) => [r.key, r.value]))} oyster={sites.includes('oyster')} radetzky={sites.includes('radetzky')} />
   } else {
     const { data } = await supabase.from('site_menu').select('id, section, name, description, price, tag, visible, sort').eq('site', tab).order('sort').order('name')
-    body = <MenuEditor site={tab} rows={(data ?? []) as Row[]} />
+    body = <MenuEditor site={tab} rows={(data ?? []) as Row[]} siteUrl={SITE_URL[tab === 'oyster' ? 'oyster' : 'radetzky']} />
   }
+  const HINT: Record<string, string> = { oyster: 'Piatti, prezzi, esauriti', radetzky: 'La carta del Café', formule: 'I pacchetti catering', info: 'Avviso in cima e orari' }
   return (<>
     <PageHead title="Siti" />
-    <p className="mb-4 max-w-2xl text-grey">Quello che modifichi qui compare sui siti Oysteroom e Radetzky entro un minuto. I piatti nascosti restano salvati ma non si vedono online.</p>
-    <nav className="mb-5 flex flex-wrap gap-2" aria-label="Contenuti">{tabs.map(([k, l]) => (
+    <nav className="mb-6 grid grid-cols-2 gap-2 lg:grid-cols-4" aria-label="Cosa vuoi modificare">{tabs.map(([k, l]) => (
       <Link key={k} href={`/sito?s=${k}`} aria-current={tab === k ? 'page' : undefined}
-        className={`rounded px-3 py-2 font-semibold ${tab === k ? 'bg-iron text-linen' : 'border-2 border-iron text-iron hover:bg-iron hover:text-linen'}`}>{l}</Link>))}
+        className={`rounded border-2 p-3 ${tab === k ? 'border-iron bg-iron text-linen' : 'border-ink/15 bg-white hover:border-iron'}`}>
+        <span className="block font-bold">{l}</span><span className={`text-sm ${tab === k ? 'text-linen/80' : 'text-grey'}`}>{HINT[k]}</span></Link>))}
     </nav>
     {body}
   </>)
