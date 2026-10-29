@@ -12,11 +12,6 @@ export async function setBookingStatus(id: string, status: BookingStatus): Promi
   const { data } = await s.from('bookings').update({ status, handled_by: user?.id ?? null, handled_at: new Date().toISOString() }).eq('id', id).select('id')
   return data?.length ? done() : { ok: false, error: DENIED }
 }
-export async function saveStaffNote(id: string, note: string): Promise<R> {
-  const s = await createServerClient()
-  const { data } = await s.from('bookings').update({ staff_note: note.trim().slice(0, 300) }).eq('id', id).select('id')
-  return data?.length ? done() : { ok: false, error: DENIED }
-}
 /** Prenotazione presa al telefono o al banco: entra già confermata. */
 export async function addBooking(raw: Record<string, unknown>, source: 'telefono' | 'banco'): Promise<R> {
   const p = parseBooking(raw, romeToday()); if (!p.ok) return p

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { CORS } from '@/lib/supabase/anon'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { parseBooking } from '@/lib/bookings'
+import { parseBooking, isBookable } from '@/lib/bookings'
 import { romeToday } from '@/lib/events/rules'
 
 /** Richiesta tavolo dal sito Oysteroom. Corpo JSON (anche come text/plain, per evitare il preflight). Risponde { ok } oppure { ok:false, error }.
@@ -21,7 +21,13 @@ export async function POST(req: Request) {
   const p = parseBooking(raw, romeToday())
   if (!p.ok) return json({ ok: false, error: p.error }, 422)
   const b = p.data
-  const { error } = await createAdminClient().rpc('request_booking', { p_name: b.name, p_phone: b.phone, p_email: b.email, p_date: b.date, p_time: b.time, p_guests: b.guests, p_occasion: b.occasion, p_area: b.area, p_notes: b.notes, p_ip_hash: ipHash(req) })
+  const db = createAdminClient()
+  const { data: rows } = await db.from('site_info').select('key, value').like('key', 'oyster_%')
+  const hm = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date())
+  const now = { date: romeToday(), minutes: Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5)) }
+  if (rows && !isBookable(b.date, b.time, Object.fromEntries(rows.map((r) => [r.key, r.value])), now))
+    return json({ ok: false, error: 'A quell’ora siamo chiusi o manca troppo poco: scegli un altro orario o chiamaci.' }, 422)
+  const { error } = await db.rpc('request_booking', { p_name: b.name, p_phone: b.phone, p_email: b.email, p_date: b.date, p_time: b.time, p_guests: b.guests, p_occasion: b.occasion, p_area: b.area, p_notes: b.notes, p_ip_hash: ipHash(req) })
   if (error) {
     if (/troppe/i.test(error.message)) return json({ ok: false, error: 'Hai già inviato alcune richieste: riprova tra qualche minuto o chiamaci.' }, 429)
     return json({ ok: false, error: 'Richiesta non salvata.' }, 503)
