@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { parseBooking, type BookingStatus } from '@/lib/bookings'
 import { romeToday } from '@/lib/events/rules'
 type R = { ok: true } | { ok: false; error: string }
-const DENIED = 'Operazione non riuscita: lavori all’Oysteroom con questo account?'
+const DENIED = 'Non salvato: questo account non gestisce le prenotazioni della Oysteroom.'
 const done = (): R => { revalidatePath('/prenotazioni'); revalidatePath('/'); return { ok: true } }
 
 export async function setBookingStatus(id: string, status: BookingStatus): Promise<R> {

@@ -16,7 +16,7 @@ const dayLabel = (iso: string, today: string) => {
 }
 const first = (n: string) => n.trim().split(/\s+/)[0]
 const shortDay = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
-const msgOk = (b: BookingRow) => `Ciao ${first(b.name)}, ti confermiamo il tavolo all'Oysteroom per ${shortDay(b.date)} alle ${b.time}, ${b.guests} ${b.guests === 1 ? 'persona' : 'persone'}. Ti aspettiamo in Corso Garibaldi 105!`
+const msgOk = (b: BookingRow) => `Ciao ${first(b.name)}, ti confermiamo il tavolo alla Oysteroom per ${shortDay(b.date)} alle ${b.time}, ${b.guests} ${b.guests === 1 ? 'persona' : 'persone'}. Ti aspettiamo in Corso Garibaldi 105!`
 const msgNo = (b: BookingRow) => `Ciao ${first(b.name)}, purtroppo ${shortDay(b.date)} alle ${b.time} siamo al completo. Se ti va ti proponiamo un altro orario: rispondi pure a questo messaggio.`
 
 function Card1({ b, today, onMsg }: { b: BookingRow; today: string; onMsg: (m: Msg) => void }) {
@@ -37,7 +37,7 @@ function Card1({ b, today, onMsg }: { b: BookingRow; today: string; onMsg: (m: M
       {b.status === 'nuova' && <>
         <Button disabled={pending} onClick={() => act('confermata', whatsappLink(b.phone, msgOk(b)), 'Confermata ✓')}>Conferma e scrivi su WhatsApp</Button>
         <Button variant="line" disabled={pending} onClick={() => act('confermata', undefined, 'Confermata ✓')}>Conferma</Button>
-        <Button variant="danger" disabled={pending} onClick={() => act('rifiutata', whatsappLink(b.phone, msgNo(b)), 'Rifiutata: messaggio pronto su WhatsApp')}>Siamo al completo</Button>
+        <Button variant="danger" disabled={pending} onClick={() => act('rifiutata', whatsappLink(b.phone, msgNo(b)), 'Rifiutata: messaggio pronto su WhatsApp')}>Rifiuta e scrivi su WhatsApp</Button>
       </>}
       {b.status === 'confermata' && b.date >= today && <>
         <a className={link} href={whatsappLink(b.phone, `Ciao ${first(b.name)}, `)} target="_blank" rel="noreferrer">WhatsApp</a>
