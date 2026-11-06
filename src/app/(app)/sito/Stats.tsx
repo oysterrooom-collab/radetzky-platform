@@ -3,7 +3,7 @@ const LABEL: Record<string, string> = {
   visita: 'Visite', clic_prenota: 'Clic su «Prenota»', form_iniziato: 'Hanno iniziato a prenotare', prenotazione_inviata: 'Richieste di tavolo inviate',
   clic_chiama: 'Clic su «Chiama»', clic_maps: 'Aperto la mappa', clic_instagram: 'Aperto Instagram', clic_email: 'Clic su email',
   vai_a_radetzky: 'Passati al sito Radetzky', vai_a_oysteroom: 'Passati al sito Oysteroom', clic_preventivo: 'Clic su «Chiedi un preventivo»',
-  clic_copia: 'Copiato un contatto', clic_stampa: 'Letto un articolo stampa', clic_menu_completo: 'Aperto il menù completo',
+  clic_copia: 'Copiato un contatto', clic_whatsapp: 'Aperto WhatsApp', richiesta_preventivo: 'Richieste di preventivo inviate', cambio_lingua: 'Cambiato lingua', clic_stampa: 'Letto un articolo stampa', clic_menu_completo: 'Aperto il menù completo',
 }
 const ORDER = Object.keys(LABEL)
 /** Numeri degli ultimi 30 giorni, senza cookie: quante persone arrivano e cosa fanno. */

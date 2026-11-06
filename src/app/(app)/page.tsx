@@ -33,6 +33,7 @@ export default async function Home() {
     if ((users ?? 0) <= 1) todo.push(['/impostazioni/utenti', 'Crea gli account per Giacomo e lo staff.'])
   }
   const atOyster = s.memberships.some((m) => m.slug === 'oysteroom')
+  const webReq = evs.filter((e) => e.status === 'richiesta' && e.title === 'Richiesta dal sito').length
   const { count: toConfirm } = atOyster ? await supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'nuova').gte('date', today) : { count: 0 }
   const { count: tonight } = atOyster ? await supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'confermata').eq('date', today) : { count: 0 }
   return (<>
@@ -42,6 +43,8 @@ export default async function Home() {
     {atOyster && <Link href={(toConfirm ?? 0) > 0 ? '/prenotazioni' : '/prenotazioni?v=prossime'} className={`mb-5 flex flex-wrap items-center justify-between gap-2 rounded p-5 ${(toConfirm ?? 0) > 0 ? 'bg-divano text-linen' : 'border border-ink/10 bg-white'}`}>
       <span className="text-xl font-bold">{(toConfirm ?? 0) > 0 ? `${toConfirm} ${toConfirm === 1 ? 'richiesta' : 'richieste'} di tavolo da confermare` : 'Nessuna richiesta di tavolo da confermare'}</span>
       <span className="font-semibold">{tonight ? `Oggi ${tonight} ${tonight === 1 ? 'tavolo confermato' : 'tavoli confermati'}` : 'Apri le prenotazioni'}</span></Link>}
+    {webReq > 0 && <Link href="/pratiche?stato=richiesta" className="mb-5 flex flex-wrap items-center justify-between gap-2 rounded bg-iron p-5 text-linen">
+      <span className="text-xl font-bold">{webReq} {webReq === 1 ? 'richiesta' : 'richieste'} di preventivo arrivate dal sito</span><span className="font-semibold">Apri gli eventi</span></Link>}
     {sites.length > 0 && <Card className="mb-5"><h2 className="mb-3 text-xl font-bold">Aggiorna i siti</h2>
       <div className="flex flex-wrap gap-2">{sites.map((x) => <LinkButton key={x} href={`/sito?s=${x}`} variant="line">{SITE_LABEL[x]}</LinkButton>)}
         <LinkButton href="/sito?s=info" variant="line">Avvisi e orari</LinkButton></div></Card>}
